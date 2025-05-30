@@ -14,7 +14,8 @@ export async function analyzeReport(fileContent, fileType) {
   3. Test Date
   4. Findings/Results
   5. Recommendations
-  6. Any critical values or abnormalities
+  6. Any critical values or abnormalities (give only the values and the name)
+  7. Major complaints (Must be in single line or points)
   
   Return ONLY a JSON object without any markdown formatting or additional text.`;
 

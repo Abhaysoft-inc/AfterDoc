@@ -12,14 +12,8 @@ async function analyzePrescription(fileContent, fileType) {
   For each medicine, provide the following information in a structured JSON format:
   1. Medicine name
   2. Dosage
-  3. Frequency
-  4. Duration
-  5. Primary uses and conditions it treats
-  6. How it works (brief mechanism of action)
-  7. Common side effects
-  8. Important precautions
-  9. Whether it's prescription-only or OTC
-  10. Any specific instructions from the doctor
+  3. Primary uses
+  4. Common side effects
 
   Format the response as a clean JSON object without any markdown formatting.`;
 

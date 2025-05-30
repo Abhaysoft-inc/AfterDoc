@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Navbar from '@/components/pages/analysis/Navbar';
 
 export default function PrescriptionAnalysis() {
   const [file, setFile] = useState(null);
@@ -9,7 +10,6 @@ export default function PrescriptionAnalysis() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [result, setResult] = useState(null);
-  const [getMedicineUses, setGetMedicineUses] = useState(false);
   const router = useRouter();
 
   const handleFileChange = (e) => {
@@ -51,7 +51,6 @@ export default function PrescriptionAnalysis() {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('getMedicineUses', getMedicineUses);
 
       const response = await fetch('/api/analyze-prescription', {
         method: 'POST',
@@ -61,6 +60,9 @@ export default function PrescriptionAnalysis() {
       const data = await response.json();
 
       if (!response.ok) {
+        if (response.status === 503) {
+          throw new Error('The AI service is temporarily unavailable. Please try again in a few moments.');
+        }
         throw new Error(data.error || 'Failed to analyze prescription');
       }
 
@@ -72,245 +74,232 @@ export default function PrescriptionAnalysis() {
     }
   };
 
+  const handleRetry = () => {
+    setError(null);
+    handleSubmit(new Event('submit'));
+  };
+
+  const handleNewUpload = () => {
+    setResult(null);
+    setFile(null);
+    setFileName('');
+  };
+
   return (
-    <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto">
-        <div className="bg-white shadow rounded-lg p-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-6">
-            Prescription Analysis
-          </h1>
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Upload Prescription
-              </label>
-              <div 
-                className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md"
-                onDragOver={handleDragOver}
-                onDrop={handleDrop}
-              >
-                <div className="space-y-1 text-center">
-                  <svg
-                    className="mx-auto h-12 w-12 text-gray-400"
-                    stroke="currentColor"
-                    fill="none"
-                    viewBox="0 0 48 48"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                      strokeWidth={2}
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                  <div className="flex text-sm text-gray-600">
-                    <label
-                      htmlFor="file-upload"
-                      className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500"
-                    >
-                      <span>Upload a file</span>
-                      <input
-                        id="file-upload"
-                        name="file-upload"
-                        type="file"
-                        className="sr-only"
-                        accept=".pdf,.jpg,.jpeg,.png"
-                        onChange={handleFileChange}
-                      />
-                    </label>
-                    <p className="pl-1">or drag and drop</p>
-                  </div>
-                  <p className="text-xs text-gray-500">
-                    PDF, JPG, PNG up to 10MB
-                  </p>
-                  {fileName && (
-                    <p className="text-sm text-indigo-600 mt-2">
-                      Selected file: {fileName}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center">
-              <input
-                id="medicine-uses"
-                name="medicine-uses"
-                type="checkbox"
-                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                checked={getMedicineUses}
-                onChange={(e) => setGetMedicineUses(e.target.checked)}
-              />
-              <label
-                htmlFor="medicine-uses"
-                className="ml-2 block text-sm text-gray-900"
-              >
-                Get detailed information about medicine uses and applications
-              </label>
-            </div>
-
-            {error && (
-              <div className="rounded-md bg-red-50 p-4">
-                <div className="flex">
-                  <div className="ml-3">
-                    <h3 className="text-sm font-medium text-red-800">{error}</h3>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-            >
-              {loading ? 'Analyzing...' : 'Analyze Prescription'}
-            </button>
-          </form>
-
-          {result && (
-            <div className="mt-8 space-y-6">
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h2 className="text-lg font-medium text-gray-900 mb-4">
+    <div className="min-h-screen bg-[#1c1c1c]">
+      <div className="mx-0 py-2">
+        <div className="flex justify-center w-full">
+          <Navbar />
+        </div>
+        
+        <div className="mt-2">
+          {/* Upload Section - Only show if no result */}
+          {!result && (
+            <div className="max-w-3xl mx-auto">
+              <div className="bg-[#2c2c2c] rounded-2xl p-8 shadow-xl">
+                <h1 className="text-3xl font-bold text-center text-white mb-8">
                   Prescription Analysis
-                </h2>
-                
-                {/* Patient Information */}
-                {result.prescription.patientInfo && (
-                  <div className="mb-6">
-                    <h3 className="text-md font-medium text-gray-700 mb-2">
-                      Patient Information
-                    </h3>
-                    <div className="bg-white p-4 rounded-md shadow">
-                      <pre className="whitespace-pre-wrap text-sm text-gray-600">
-                        {JSON.stringify(result.prescription.patientInfo, null, 2)}
-                      </pre>
+                </h1>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div>
+                    <div 
+                      className="flex justify-center px-6 pt-8 pb-8 border-2 border-dashed border-gray-600 rounded-xl hover:border-indigo-500 transition-all duration-300 bg-[#1c1c1c]"
+                      onDragOver={handleDragOver}
+                      onDrop={handleDrop}
+                    >
+                      <div className="space-y-4 text-center">
+                        <div className="flex justify-center">
+                          <svg
+                            className="h-16 w-16 text-indigo-500"
+                            stroke="currentColor"
+                            fill="none"
+                            viewBox="0 0 48 48"
+                            aria-hidden="true"
+                          >
+                            <path
+                              d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                              strokeWidth={2}
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </div>
+                        <div className="flex flex-col items-center space-y-2">
+                          <label
+                            htmlFor="file-upload"
+                            className="relative cursor-pointer bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors duration-300"
+                          >
+                            <span>Choose a file</span>
+                            <input
+                              id="file-upload"
+                              name="file-upload"
+                              type="file"
+                              className="sr-only"
+                              accept=".pdf,.jpg,.jpeg,.png"
+                              onChange={handleFileChange}
+                            />
+                          </label>
+                          <p className="text-sm text-gray-400">or drag and drop</p>
+                          <p className="text-xs text-gray-500">
+                            PDF, JPG, PNG up to 10MB
+                          </p>
+                        </div>
+                        {fileName && (
+                          <p className="text-sm text-indigo-400 mt-2">
+                            Selected: {fileName}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
-                )}
 
-                {/* Doctor Information */}
-                {result.prescription.doctorInfo && (
-                  <div className="mb-6">
-                    <h3 className="text-md font-medium text-gray-700 mb-2">
-                      Doctor Information
-                    </h3>
-                    <div className="bg-white p-4 rounded-md shadow">
-                      <pre className="whitespace-pre-wrap text-sm text-gray-600">
-                        {JSON.stringify(result.prescription.doctorInfo, null, 2)}
-                      </pre>
+                  {error && (
+                    <div className="rounded-lg bg-red-900/50 p-4 border border-red-800">
+                      <div className="flex flex-col space-y-2">
+                        <h3 className="text-sm font-medium text-red-200">{error}</h3>
+                        <button
+                          onClick={handleRetry}
+                          className="text-sm text-indigo-400 hover:text-indigo-300 transition-colors duration-300"
+                        >
+                          Click here to retry
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* Prescribed Medicines */}
-                {result.prescription.medicines && (
-                  <div className="mb-6">
-                    <h3 className="text-md font-medium text-gray-700 mb-2">
-                      Prescribed Medicines
-                    </h3>
-                    <div className="space-y-4">
-                      {result.prescription.medicines.map((medicine, index) => (
-                        <div key={index} className="bg-white p-4 rounded-md shadow">
-                          <h4 className="font-medium text-gray-900 mb-2">
-                            {medicine.name}
-                          </h4>
-                          <div className="grid grid-cols-2 gap-4 text-sm">
-                            <div>
-                              <span className="font-medium">Dosage:</span>{' '}
-                              {medicine.dosage}
-                            </div>
-                            <div>
-                              <span className="font-medium">Frequency:</span>{' '}
-                              {medicine.frequency}
-                            </div>
-                            <div>
-                              <span className="font-medium">Duration:</span>{' '}
-                              {medicine.duration}
-                            </div>
-                            <div>
-                              <span className="font-medium">Primary Uses:</span>{' '}
-                              {medicine.primaryUses}
-                            </div>
-                            <div>
-                              <span className="font-medium">How it works:</span>{' '}
-                              {medicine.howItWorks}
-                            </div>
-                            <div>
-                              <span className="font-medium">Side Effects:</span>{' '}
-                              {medicine.sideEffects}
-                            </div>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 transition-all duration-300"
+                  >
+                    {loading ? (
+                      <div className="flex items-center space-x-2">
+                        <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span>Analyzing Prescription...</span>
+                      </div>
+                    ) : (
+                      'Analyze Prescription'
+                    )}
+                  </button>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* Results Section */}
+          {result?.prescription && (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Prescription List */}
+              <div className="lg:col-span-2">
+                <div className="bg-[#2c2c2c] rounded-2xl p-6 shadow-xl">
+                  <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-2xl font-bold text-white">Prescribed Medicines</h2>
+                    <button
+                      onClick={handleNewUpload}
+                      className="text-sm text-indigo-400 hover:text-indigo-300 transition-colors duration-300 flex items-center space-x-1"
+                    >
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                      </svg>
+                      <span>New Upload</span>
+                    </button>
+                  </div>
+                  <div className="space-y-4">
+                    {(() => {
+                      const prescriptionArray = Array.isArray(result.prescription) 
+                        ? result.prescription 
+                        : result.prescription?.prescription;
+
+                      if (!Array.isArray(prescriptionArray)) {
+                        return (
+                          <div className="text-gray-400 text-center py-8">
+                            No prescription data available
                           </div>
+                        );
+                      }
 
-                          {/* Detailed Medicine Uses */}
-                          {result.medicineUses && result.medicineUses[medicine.name] && (
-                            <div className="mt-4 pt-4 border-t">
-                              <h5 className="font-medium text-gray-900 mb-2">
-                                Detailed Uses and Applications
-                              </h5>
-                              <div className="text-sm text-gray-600">
-                                <div className="grid grid-cols-1 gap-4">
-                                  <div>
-                                    <span className="font-medium">Conditions Treated:</span>{' '}
-                                    {result.medicineUses[medicine.name].primaryConditions}
-                                  </div>
-                                  <div>
-                                    <span className="font-medium">Off-label Uses:</span>{' '}
-                                    {result.medicineUses[medicine.name].offLabelUses}
-                                  </div>
-                                  <div>
-                                    <span className="font-medium">Mechanism of Action:</span>{' '}
-                                    {result.medicineUses[medicine.name].howItWorks}
-                                  </div>
-                                  <div>
-                                    <span className="font-medium">Expected Benefits:</span>{' '}
-                                    {result.medicineUses[medicine.name].expectedBenefits}
-                                  </div>
-                                  <div>
-                                    <span className="font-medium">When to Expect Results:</span>{' '}
-                                    {result.medicineUses[medicine.name].expectedResults}
-                                  </div>
-                                  <div>
-                                    <span className="font-medium">Common Combinations:</span>{' '}
-                                    {result.medicineUses[medicine.name].commonCombinations}
-                                  </div>
-                                  <div>
-                                    <span className="font-medium">Age Considerations:</span>{' '}
-                                    {result.medicineUses[medicine.name].ageConsiderations}
-                                  </div>
-                                  <div>
-                                    <span className="font-medium">Lifestyle Recommendations:</span>{' '}
-                                    {result.medicineUses[medicine.name].lifestyleRecommendations}
-                                  </div>
-                                  <div>
-                                    <span className="font-medium">Warning Signs:</span>{' '}
-                                    {result.medicineUses[medicine.name].warningSigns}
-                                  </div>
-                                </div>
+                      return prescriptionArray.map((medicine, index) => (
+                        <div 
+                          key={index} 
+                          className="bg-[#1c1c1c] rounded-xl p-6 hover:border hover:border-indigo-500/50 transition-all duration-300"
+                        >
+                          <h3 className="text-xl font-semibold text-white mb-4">
+                            {medicine["Medicine name"] || medicine.medicine_name}
+                          </h3>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <div>
+                                <span className="text-sm font-medium text-gray-400">Dosage</span>
+                                <p className="text-white mt-1">
+                                  {medicine.Dosage || medicine.dosage}
+                                </p>
+                              </div>
+                              <div>
+                                <span className="text-sm font-medium text-gray-400">Primary Uses</span>
+                                <p className="text-white mt-1">
+                                  {medicine["Primary uses"] || medicine.primary_uses}
+                                </p>
                               </div>
                             </div>
-                          )}
+                            <div>
+                              <span className="text-sm font-medium text-gray-400">Side Effects</span>
+                              <p className="text-white mt-1">
+                                {medicine["Common side effects"] || medicine.common_side_effects}
+                              </p>
+                            </div>
+                          </div>
                         </div>
-                      ))}
-                    </div>
+                      ));
+                    })()}
                   </div>
-                )}
+                </div>
+              </div>
 
-                {/* Additional Instructions */}
-                {result.prescription.additionalInstructions && (
-                  <div className="mb-6">
-                    <h3 className="text-md font-medium text-gray-700 mb-2">
-                      Additional Instructions
-                    </h3>
-                    <div className="bg-white p-4 rounded-md shadow">
-                      <p className="text-sm text-gray-600">
-                        {result.prescription.additionalInstructions}
-                      </p>
+              {/* Additional Information */}
+              <div className="lg:col-span-1">
+                <div className="bg-[#2c2c2c] rounded-2xl p-6 shadow-xl">
+                  <h2 className="text-2xl font-bold text-white mb-6">Important Information</h2>
+                  <div className="space-y-6">
+                    <div className="bg-[#1c1c1c] rounded-xl p-6">
+                      <h3 className="text-lg font-semibold text-white mb-4">Safety Guidelines</h3>
+                      <ul className="space-y-3">
+                        <li className="flex items-start space-x-3 text-gray-300">
+                          <svg className="h-5 w-5 text-indigo-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span>Take all medications exactly as prescribed by your doctor</span>
+                        </li>
+                        <li className="flex items-start space-x-3 text-gray-300">
+                          <svg className="h-5 w-5 text-indigo-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span>Complete the full course of antibiotics even if you feel better</span>
+                        </li>
+                        <li className="flex items-start space-x-3 text-gray-300">
+                          <svg className="h-5 w-5 text-indigo-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span>Consult your doctor if you experience any severe side effects</span>
+                        </li>
+                        <li className="flex items-start space-x-3 text-gray-300">
+                          <svg className="h-5 w-5 text-indigo-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span>Keep medications out of reach of children</span>
+                        </li>
+                        <li className="flex items-start space-x-3 text-gray-300">
+                          <svg className="h-5 w-5 text-indigo-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span>Store medications in a cool, dry place</span>
+                        </li>
+                      </ul>
                     </div>
                   </div>
-                )}
+                </div>
               </div>
             </div>
           )}
