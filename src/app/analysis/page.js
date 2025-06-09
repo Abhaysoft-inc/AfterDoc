@@ -46,7 +46,7 @@ const AnalysisPage = () => {
 
     return (
         <>
-            <div className="mx-0 py-2 min-h-screen bg-[#1c1c1c]">
+            <div className="mx-0 py-2 min-h-screen bg-[#171717]">
                 <div className="flex justify-center w-full">
                     <Navbar />
                 </div>
@@ -60,12 +60,18 @@ const AnalysisPage = () => {
                     </div>
 
                     <div className="right w-70 px-1 py-1 space-y-3">
-                        <TestInfo 
-                            testType={result?.data?.["Test Type"]} 
-                            testDate={result?.data?.["Test Date"]} 
+                        <TestInfo
+                            testType={result?.data?.["Test Type"]}
+                            testDate={result?.data?.["Test Date"]}
                         />
-                        <MajorComplaints complaints={result?.data?.["Major complaints"]} />
-                        <Recommendations recommendations={result?.data?.Recommendations} />
+                        {/* Major Complaints */}
+                        {result?.data?.["Major complaints"] && (
+                            <MajorComplaints complaints={result?.data?.["Major complaints"]} />
+                        )}
+                        {/* Recommendations */}
+                        {result?.data?.Recommendations && (
+                            <Recommendations recommendations={result?.data?.Recommendations} />
+                        )}
                     </div>
                 </div>
             </div>

@@ -14,8 +14,16 @@ export async function analyzeReport(fileContent, fileType) {
   3. Test Date
   4. Findings/Results
   5. Recommendations
-  6. Any critical values or abnormalities (give only the values and the name)
+  6. Any critical values or abnormalities (return as an array of objects with 'name' and 'value' properties)
   7. Major complaints (Must be in single line or points)
+  
+  For critical values, format them as an array of objects like this:
+  "Any critical values or abnormalities": [
+    {
+      "name": "Test/Parameter name",
+      "value": "Actual value with units"
+    }
+  ]
   
   Return ONLY a JSON object without any markdown formatting or additional text.`;
 

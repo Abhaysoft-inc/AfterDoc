@@ -7,6 +7,7 @@ const CriticalValues = ({ criticalValues }) => {
             "Hemoglobin (Hb)": { min: 13.5, max: 17.5 },
             "Packed Cell Volume (PCV)": { min: 40, max: 50 },
             "Platelet Count": { min: 150000, max: 450000 }
+            // Add more ranges as needed
         };
 
         const range = ranges[name];
@@ -23,15 +24,20 @@ const CriticalValues = ({ criticalValues }) => {
     return (
         <div className="box1 bg-[#2c2c2c] w-full h-40 rounded-2xl">
             <p className="text-center pt-3 text-white font-light">Critical Values</p>
-            {criticalValues && Array.isArray(criticalValues) && (
+            {criticalValues && Array.isArray(criticalValues) && criticalValues.length > 0 && (
                 <div className="px-4 py-2 text-white text-sm h-[calc(100%-40px)] overflow-y-auto custom-scrollbar">
                     <div className="pb-4">
                         {criticalValues.map((item, index) => (
                             <div key={index} className="mb-2">
-                                <span className="font-medium">{item.Name}: </span>
-                                <span className={getValueColor(item.Value, item.Name)}>
-                                    {item.Value}
-                                </span>
+                                {/* Use item.name and item.value based on API response format */}
+                                {item.name && (
+                                    <span className="font-medium">{item.name}: </span>
+                                )}
+                                {item.value && (
+                                    <span className={getValueColor(item.value, item.name)}>
+                                        {item.value}
+                                    </span>
+                                )}
                             </div>
                         ))}
                     </div>

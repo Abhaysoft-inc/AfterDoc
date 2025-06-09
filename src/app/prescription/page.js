@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/pages/analysis/Navbar';
 
@@ -11,6 +11,20 @@ export default function PrescriptionAnalysis() {
   const [error, setError] = useState(null);
   const [result, setResult] = useState(null);
   const router = useRouter();
+
+  useEffect(() => {
+    // Get the prescription results from localStorage
+    const storedResults = localStorage.getItem('prescriptionResults');
+    if (storedResults) {
+      try {
+        const parsedResults = JSON.parse(storedResults);
+        setResult(parsedResults);
+      } catch (error) {
+        console.error('Error parsing stored results:', error);
+        localStorage.removeItem('prescriptionResults');
+      }
+    }
+  }, []);
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -67,6 +81,8 @@ export default function PrescriptionAnalysis() {
       }
 
       setResult(data);
+      // Store the results in localStorage
+      localStorage.setItem('prescriptionResults', JSON.stringify(data));
     } catch (err) {
       setError(err.message);
     } finally {
@@ -83,6 +99,8 @@ export default function PrescriptionAnalysis() {
     setResult(null);
     setFile(null);
     setFileName('');
+    // Clear the stored results when starting a new upload
+    localStorage.removeItem('prescriptionResults');
   };
 
   return (
@@ -191,7 +209,7 @@ export default function PrescriptionAnalysis() {
 
           {/* Results Section */}
           {result?.prescription && (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mx-2 mt-6">
               {/* Prescription List */}
               <div className="lg:col-span-2">
                 <div className="bg-[#2c2c2c] rounded-2xl p-6 shadow-xl">
